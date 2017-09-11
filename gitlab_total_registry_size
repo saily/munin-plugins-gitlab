@@ -2,6 +2,7 @@
 from lib import dirsize
 from lib import get_gitlab_instance
 import sys
+from os.path import join
 
 
 gitlab = get_gitlab_instance()
@@ -12,16 +13,30 @@ if len(sys.argv) >= 2 and sys.argv[1] == 'config':
     print('graph_vlabel docker registry disk usage')
     print('graph_args -l 0 --base 1024')
     print('graph_category gitlab')
-    print('registry_size.label docker registry')
+    print('registry_size.label registry total size')
     print('registry_size.draw AREA')
+    print('registry_blobs_size.label registry blobs size')
+    print('registry_blobs_size.draw LINE2')
+    print('registry_repositories_size.label registry repositories size')
+    print('registry_repositories_size.draw LINE2')
     sys.exit(0)
 
 registry_size = 0
+registry_blobs_size = 0
+registry_repositories_size = 0
 
 try:
-    registry_size = dirsize(registry_root)
+    registry_blobs_size = dirsize(join(
+        registry_root, 'docker', 'registry', 'v2', 'blobs'))
+    registry_repositories_size = dirsize(join(
+        registry_root, 'docker', 'registry', 'v2', 'repositories'))
+
+    # registry_size = dirsize(registry_root)
+    registry_size = registry_blobs_size + registry_repositories_size
 except OSError as e:
     print(e)
     sys.exit(1)
 
 print('registry_size.value ' + str(registry_size))
+print('registry_blobs_size.value ' + str(registry_blobs_size))
+print('registry_repositories_size.value ' + str(registry_repositories_size))
